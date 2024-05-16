@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:trivia/quiz_screen.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(MyApp());
@@ -15,6 +18,26 @@ class MyApp extends StatelessWidget {
 }
 
 class HomeScreen extends StatelessWidget {
+
+  final String apiKey = 'https://opentdb.com/api.php?amount=10&type=multiple';
+  final String baseUrl = 'https://opentdb.com/api.php';
+
+  Future<List<dynamic>> fetchQuestions(String categoryId) async {
+    final url = '$baseUrl?amount=10&category=$categoryId&apiKey=$apiKey';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body)['results'];
+      } else {
+        throw Exception('Failed to load questions: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching questions: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,104 +137,112 @@ class HomeScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(500),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
                     children: [
                       // Category containers will be added here
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          List<dynamic> questions = await fetchQuestions('9');
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => QuizScreen(),
+                              builder: (context) => QuizScreen(questions),
                             ),
                           );
                         },
-                        child: _buildCategoryContainer('Category 1', Icons.category),
+                        child: _buildCategoryContainer('General Knowledge', Icons.account_balance),
                       ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          List<dynamic> questions = await fetchQuestions('23');
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => QuizScreen(),
+                              builder: (context) => QuizScreen(questions),
                             ),
                           );
                         },
-                        child: _buildCategoryContainer('Category 2', Icons.category),
+                        child: _buildCategoryContainer('History', Icons.account_tree_outlined),
                       ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          List<dynamic> questions = await fetchQuestions('27');
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => QuizScreen(),
+                              builder: (context) => QuizScreen(questions),
                             ),
                           );
                         },
-                        child: _buildCategoryContainer('Category 3', Icons.category),
+                        child: _buildCategoryContainer('Animals', Icons.adb),
                       ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          List<dynamic> questions = await fetchQuestions('26');
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => QuizScreen(),
+                              builder: (context) => QuizScreen(questions),
                             ),
                           );
                         },
-                        child: _buildCategoryContainer('Category 4', Icons.category),
+                        child: _buildCategoryContainer('Celebrities', Icons.account_box),
                       ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          List<dynamic> questions = await fetchQuestions('21');
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => QuizScreen(),
+                              builder: (context) => QuizScreen(questions),
                             ),
                           );
                         },
-                        child: _buildCategoryContainer('Category 5', Icons.category),
+                        child: _buildCategoryContainer('Sports', Icons.accessibility_new),
                       ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          List<dynamic> questions = await fetchQuestions('18');
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => QuizScreen(),
+                              builder: (context) => QuizScreen(questions),
                             ),
                           );
                         },
-                        child: _buildCategoryContainer('Category 6', Icons.category),
+                        child: _buildCategoryContainer('Science & Nature', Icons.ac_unit),
                       ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          List<dynamic> questions = await fetchQuestions('25');
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => QuizScreen(),
+                              builder: (context) => QuizScreen(questions),
                             ),
                           );
                         },
-                        child: _buildCategoryContainer('Category 7', Icons.category),
+                        child: _buildCategoryContainer('Art', Icons.category),
                       ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          List<dynamic> questions = await fetchQuestions('20');
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => QuizScreen(),
+                              builder: (context) => QuizScreen(questions),
                             ),
                           );
                         },
-                        child: _buildCategoryContainer('Category 8', Icons.category),
+                        child: _buildCategoryContainer('Mythology', Icons.account_balance_wallet),
                       ),
                     ],
                   ),
@@ -226,7 +257,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildCategoryContainer(String title, IconData icon) {
     return Container(
-      margin: EdgeInsets.all(10),
+      margin: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(.9),
         borderRadius: BorderRadius.circular(30),
@@ -235,7 +266,7 @@ class HomeScreen extends StatelessWidget {
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 5,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -247,10 +278,10 @@ class HomeScreen extends StatelessWidget {
             size: 50,
             color: Colors.deepPurple,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.deepPurple,

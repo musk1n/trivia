@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:trivia/quiz_end_screen.dart';
+import 'package:html/parser.dart';
 
 class QuizScreen extends StatefulWidget {
+  final List<dynamic> questions;
+
+  QuizScreen(this.questions);
+
   @override
   _QuizScreenState createState() => _QuizScreenState();
 }
 
 class _QuizScreenState extends State<QuizScreen> {
   int _questionIndex = 0;
-  List<Map<String, dynamic>> _questions = [
-    {
-      'question': 'What is the capital of France?',
-      'options': ['Paris', 'London', 'Berlin', 'Rome'],
-      'correctAnswer': 'Paris',
-    },
-    {
-      'question': 'Which planet is the Largest?',
-      'options': ['Mars', 'Venus', 'Jupiter', 'Mercury'],
-      'correctAnswer': 'Jupiter',
-    },
-    //.....etc.
-  ];
+  List<Map<String, dynamic>> _questions = [];
   String _selectedOption = '';
   bool _showFeedback = false;
   bool _answerSubmitted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _questions = widget.questions.cast<Map<String, dynamic>>();
+  }
 
   void _submitAnswer(String selectedOption) {
     if (!_answerSubmitted) {
@@ -106,50 +105,21 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  _questions[_questionIndex]['question'],
+                  _decodeHtmlEntities(_questions[_questionIndex]['question']),
                   style: TextStyle(fontSize: 18),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 20),
                 Column(
-                  children: (_questions[_questionIndex]['options'] as List<String>).map<Widget>((option) {
-                    bool isCorrect = option == _questions[_questionIndex]['correctAnswer'];
-                    bool isSelected = option == _selectedOption;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ElevatedButton(
-                        onPressed: _answerSubmitted
-                            ? null
-                            : () {
-                          _submitAnswer(option);
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.disabled)) {
-                                if (isSelected && !isCorrect) {
-                                  return Colors.red;
-                                } else if (isSelected && isCorrect) {
-                                  return Colors.green;
-                                } else if (!isSelected && isCorrect) {
-                                  return Colors.green;
-                                }
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        child: Text(
-                          option,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                  children: [
+                    for (var option in _questions[_questionIndex]['incorrect_answers'])
+                      _buildOptionButton(option, isCorrect: false),
+                    _buildOptionButton(_questions[_questionIndex]['correct_answer'], isCorrect: true),
+                  ],
                 ),
                 SizedBox(height: 20),
                 _showFeedback
-                    ? _selectedOption == _questions[_questionIndex]['correctAnswer']
+                    ? _selectedOption == _questions[_questionIndex]['correct_answer']
                     ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -170,7 +140,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     Icon(Icons.close, color: Colors.red),
                     SizedBox(width: 8),
                     Text(
-                      'Incorrect! Correct answer: ${_questions[_questionIndex]['correctAnswer']}',
+                      'Incorrect!',
                       style: TextStyle(
                         color: Colors.red,
                         fontWeight: FontWeight.bold,
@@ -212,4 +182,40 @@ class _QuizScreenState extends State<QuizScreen> {
       ),
     );
   }
+
+  String _decodeHtmlEntities(String text) {
+    var decodedText = parse(text).body!.text;
+    return decodedText;
+  }
+
+  Widget _buildOptionButton(String option, {required bool isCorrect}) {
+    bool isSelected = option == _selectedOption;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ElevatedButton(
+        onPressed: _answerSubmitted ? null : () => _submitAnswer(option),
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+              if (states.contains(MaterialState.disabled)) {
+                if (isSelected && !isCorrect) {
+                  return Colors.red;
+                } else if (isSelected && isCorrect) {
+                  return Colors.green;
+                } else if (!isSelected && isCorrect){
+                  return Colors.green;
+                }
+              }
+              return null;
+            },
+          ),
+        ),
+        child: Text(
+          _decodeHtmlEntities(option),
+          style: TextStyle(fontSize: 16),
+        ),
+      ),
+    );
+  }
 }
+

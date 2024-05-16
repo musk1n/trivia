@@ -38,10 +38,10 @@ class QuizEndScreen extends StatelessWidget {
             SizedBox(height: 50),
             ElevatedButton.icon(
               onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => QuizScreen()),
-                  );
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                );
               },
               icon: Icon(Icons.refresh),
               label: Text('Restart'),
