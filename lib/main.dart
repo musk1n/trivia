@@ -1,11 +1,18 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:trivia/quiz_screen.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ScoreProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -18,7 +25,6 @@ class MyApp extends StatelessWidget {
 }
 
 class HomeScreen extends StatelessWidget {
-
   final String apiKey = 'https://opentdb.com/api.php?amount=10&type=multiple';
   final String baseUrl = 'https://opentdb.com/api.php';
 
@@ -74,31 +80,33 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             Spacer(),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(500),
-                border: Border.all(color: Colors.deepPurple),
-                color: Colors.white,
-              ),
-              padding: EdgeInsets.all(8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.star,
-                    color: Colors.amber,
-                    size: 24,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    "100",
-                    style: TextStyle(
-                      color: Colors.deepPurple,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+            Consumer<ScoreProvider>(
+              builder: (context, scoreProvider, _) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(500),
+                  border: Border.all(color: Colors.deepPurple),
+                  color: Colors.white,
+                ),
+                padding: EdgeInsets.all(8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                      size: 24,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 6),
+                    Text(
+                      scoreProvider.score.toString(),
+                      style: TextStyle(
+                        color: Colors.deepPurple,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -147,7 +155,6 @@ class HomeScreen extends StatelessWidget {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      // Category containers will be added here
                       GestureDetector(
                         onTap: () async {
                           List<dynamic> questions = await fetchQuestions('9');
@@ -290,5 +297,16 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class ScoreProvider extends ChangeNotifier {
+  int _score = 0;
+
+  int get score => _score;
+
+  void setScore(int value) {
+    _score = value;
+    notifyListeners();
   }
 }

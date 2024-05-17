@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:trivia/quiz_end_screen.dart';
 import 'package:html/parser.dart';
+import 'package:trivia/main.dart';
 
 class QuizScreen extends StatefulWidget {
   final List<dynamic> questions;
@@ -24,12 +26,17 @@ class _QuizScreenState extends State<QuizScreen> {
     _questions = widget.questions.cast<Map<String, dynamic>>();
   }
 
-  void _submitAnswer(String selectedOption) {
+  void _submitAnswer(String selectedOption, BuildContext context) {
     if (!_answerSubmitted) {
       setState(() {
         _selectedOption = selectedOption;
         _answerSubmitted = true;
         _showFeedback = true;
+        if (selectedOption == _questions[_questionIndex]['correct_answer']) {
+          Provider.of<ScoreProvider>(context, listen: false).setScore(
+            Provider.of<ScoreProvider>(context, listen: false).score + 1,
+          );
+        }
       });
     }
   }
@@ -59,31 +66,33 @@ class _QuizScreenState extends State<QuizScreen> {
               icon: Icon(Icons.arrow_back, color: Colors.white),
             ),
             Spacer(),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(500),
-                border: Border.all(color: Colors.deepPurple),
-                color: Colors.white,
-              ),
-              padding: EdgeInsets.all(8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.star,
-                    color: Colors.amber,
-                    size: 24,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    "100",
-                    style: TextStyle(
-                      color: Colors.deepPurple,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+            Consumer<ScoreProvider>(
+              builder: (context, scoreProvider, _) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(500),
+                  border: Border.all(color: Colors.deepPurple),
+                  color: Colors.white,
+                ),
+                padding: EdgeInsets.all(8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                      size: 24,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 6),
+                    Text(
+                      scoreProvider.score.toString(),
+                      style: TextStyle(
+                        color: Colors.deepPurple,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -165,7 +174,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       ? () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => QuizEndScreen()),
+                      MaterialPageRoute(builder: (context) => QuizEndScreen(score: 0,)),
                     );
                   }
                       : _nextQuestion
@@ -193,7 +202,7 @@ class _QuizScreenState extends State<QuizScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ElevatedButton(
-        onPressed: _answerSubmitted ? null : () => _submitAnswer(option),
+        onPressed: _answerSubmitted ? null : () => _submitAnswer(option, context),
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                 (Set<MaterialState> states) {
@@ -202,7 +211,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   return Colors.red;
                 } else if (isSelected && isCorrect) {
                   return Colors.green;
-                } else if (!isSelected && isCorrect){
+                } else if (!isSelected && isCorrect) {
                   return Colors.green;
                 }
               }
@@ -218,4 +227,3 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 }
-

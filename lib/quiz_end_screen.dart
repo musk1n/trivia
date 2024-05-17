@@ -1,10 +1,13 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:trivia/main.dart';
 import 'package:trivia/quiz_screen.dart';
 
 class QuizEndScreen extends StatelessWidget {
+  final int score;
+  QuizEndScreen({required this.score});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +43,11 @@ class QuizEndScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => QuizEndScreen(
+                      score: Provider.of<ScoreProvider>(context, listen: false).score,
+                    ),
+                  ),
                 );
               },
               icon: Icon(Icons.refresh),
